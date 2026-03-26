@@ -7,8 +7,17 @@ import cloudinary
 import cloudinary.uploader
 import cloudinary.utils
 import os
+import hashlib
 
 app = Flask(__name__)
+
+# Server-side cache: {cache_id: {image_hash: png_bytes}}
+PROCESSED_IMAGE_CACHE = {}
+
+
+def get_image_hash(image_bytes):
+    """Generate a hash for an image based on its content."""
+    return hashlib.md5(image_bytes).hexdigest()
 
 # Load variables from .env for local development.
 load_dotenv()
@@ -27,10 +36,17 @@ def index():
     return render_template("index.html")
 
 
-def process_single_image(input_image_bytes):
+def process_single_image(input_image_bytes, cache_id=None, image_hash=None):
     """Remove background, enhance, and return a ready-to-paste passport PIL image."""
     if not REMOVE_BG_API_KEY:
         raise ValueError("missing_remove_bg_api_key")
+
+    # Check if we have a cached enhanced image
+    cache_bucket = PROCESSED_IMAGE_CACHE.get(cache_id, {}) if cache_id else {}
+    if image_hash and image_hash in cache_bucket:
+        print(f"DEBUG: Using cached image for hash {image_hash}")
+        img_data = cache_bucket[image_hash]
+        return Image.open(BytesIO(img_data))
 
     # Step 1: Background removal
     response = requests.post(
@@ -93,12 +109,30 @@ def process_single_image(input_image_bytes):
     else:
         passport_img = img.convert("RGB")
 
+    # Step 4: Delete the resource from Cloudinary to save storage
+    print(f"DEBUG: Deleting Cloudinary resource {public_id}")
+    try:
+        cloudinary.uploader.destroy(public_id)
+    except Exception as e:
+        print(f"WARNING: Failed to delete Cloudinary resource {public_id}: {e}")
+
+    # Step 5: Cache the enhanced image on server-side memory
+    if cache_id and image_hash:
+        if cache_id not in PROCESSED_IMAGE_CACHE:
+            PROCESSED_IMAGE_CACHE[cache_id] = {}
+        buffer = BytesIO()
+        passport_img.save(buffer, format="PNG")
+        buffer.seek(0)
+        PROCESSED_IMAGE_CACHE[cache_id][image_hash] = buffer.getvalue()
+        print(f"DEBUG: Cached enhanced image for hash {image_hash} in cache_id {cache_id}")
+
     return passport_img
 
 
 @app.route("/process", methods=["POST"])
 def process():
     print("==== /process endpoint hit ====")
+    cache_id = request.form.get("cache_id")
 
     # Layout settings (A4 at 300 DPI)
     stroke = int(request.form.get("stroke", request.form.get("border", 2)))
@@ -159,12 +193,13 @@ def process():
     # Process all print items (image + per-item size + copies)
     processed_items = []
     for idx, (img_bytes, copies, width_px, height_px, item_name) in enumerate(print_items):
+        image_hash = get_image_hash(img_bytes)
         print(
             f"DEBUG: Processing {item_name} ({idx + 1}/{len(print_items)}) "
-            f"with size {width_px}x{height_px} and {copies} copies"
+            f"with size {width_px}x{height_px} and {copies} copies (hash: {image_hash})"
         )
         try:
-            img = process_single_image(img_bytes)
+            img = process_single_image(img_bytes, cache_id=cache_id, image_hash=image_hash)
             img = img.resize((width_px, height_px), Image.LANCZOS)
             img = ImageOps.expand(img, border=stroke, fill="black")
             processed_items.append((img, copies, width_px + 2 * stroke, height_px + 2 * stroke))
@@ -253,5 +288,22 @@ def process():
     )
 
 
+@app.route("/clear-cache", methods=["POST"])
+def clear_cache():
+    """Clear processed images cache for a specific cache_id or all caches."""
+    cache_id = request.form.get("cache_id")
+    if not cache_id and request.is_json:
+        payload = request.get_json(silent=True) or {}
+        cache_id = payload.get("cache_id")
+
+    if cache_id:
+        PROCESSED_IMAGE_CACHE.pop(cache_id, None)
+        return {"success": True, "message": f"Cache cleared for {cache_id}"}
+
+    PROCESSED_IMAGE_CACHE.clear()
+    return {"success": True, "message": "All caches cleared"}
+
+
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000, debug=True)
+    port = int(os.getenv("PORT", 5000))
+    app.run(host="0.0.0.0", port=port, debug=True)
