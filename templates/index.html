@@ -2,454 +2,608 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ID Photo Cut Sheet Studio</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://cdn.jsdelivr.net/npm/emailjs-com@3/dist/email.min.js"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="icon" href="https://res.cloudinary.com/dcajb02df/image/upload/v1753960691/logo_pyncju.png" type="image/png">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>PassPort Photo Pro</title>
-  <link href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css" rel="stylesheet" />
   <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
   <style>
-    body { font-family: 'Inter', sans-serif; }
-    #particles-js {
-      position: fixed; width: 100%; height: 100%;
-      background-color: #1a202c; z-index: -1;
+    :root {
+      --bg-1: #0b1220;
+      --bg-2: #102338;
+      --card: #111827cc;
+      --line: #334155;
     }
-    .transition-all { transition: all 0.3s ease-in-out; }
-    .glow-shadow { box-shadow: 0 0 15px rgba(59,130,246,0.5), 0 0 5px rgba(59,130,246,0.3); }
-    .photo-card { transition: all 0.3s ease; }
-    .photo-card:hover { transform: translateY(-2px); }
-    .cropper-modal-overlay {
-      position: fixed; inset: 0; background: rgba(0,0,0,0.85);
-      z-index: 100; display: flex; align-items: center; justify-content: center;
+
+    body {
+      font-family: "Manrope", sans-serif;
+      min-height: 100vh;
+      background:
+        radial-gradient(60rem 30rem at 12% -5%, #164e63 0%, transparent 60%),
+        radial-gradient(45rem 25rem at 100% 0%, #78350f 0%, transparent 60%),
+        linear-gradient(160deg, var(--bg-1), var(--bg-2));
+      color: #e2e8f0;
     }
-    .cropper-modal-box {
-      background: #1f2937; border: 1px solid #374151; border-radius: 1rem;
-      padding: 1.5rem; max-width: 520px; width: 95%; max-height: 90vh; overflow: auto;
+
+    .glass {
+      background: var(--card);
+      border: 1px solid var(--line);
+      backdrop-filter: blur(10px);
+    }
+
+    .step-pill {
+      border: 1px solid #475569;
+      background: #0f172a;
+      transition: all .2s ease;
+    }
+
+    .step-pill:hover {
+      border-color: #22d3ee;
+      transform: translateY(-1px);
+    }
+
+    .step-pill.active {
+      border-color: #22d3ee;
+      background: #0e2a34;
     }
   </style>
 </head>
-<body class="bg-gray-900 text-white" oncontextmenu="return false">
-
-  <div id="particles-js"></div>
-
-  <!-- Header -->
-  <header class="bg-gray-900/50 backdrop-blur-sm border-b border-gray-700 sticky top-0 z-10">
-    <nav class="container mx-auto px-4 sm:px-6 lg:px-8">
-      <div class="flex items-center justify-between h-16">
-        <span class="text-2xl font-bold text-blue-400">Passport Photo Pro</span>
-      </div>
-    </nav>
-  </header>
-
-  <!-- Beta Banner -->
-  <div class="bg-yellow-500 text-black py-2 px-4 font-medium text-center text-sm sm:text-base shadow-md">
-    <marquee behavior="scroll" direction="left" scrollamount="5">
-      🚧 This site is currently in beta. If you encounter any issues, please use the feedback form below to report them. Thank you!
-    </marquee>
-  </div>
-
-  <!-- Main -->
-  <main class="container mx-auto px-4 sm:px-6 lg:px-8 py-12">
-    <div class="relative bg-gray-800/60 backdrop-blur-md border border-gray-700 rounded-2xl shadow-2xl p-8 max-w-3xl mx-auto">
-
-      <h2 class="text-2xl font-bold text-center mb-2">Upload Photos</h2>
-      <p class="text-gray-400 text-center text-sm mb-6">Add one or more photos. Set how many copies of each you need.</p>
-
-      <!-- Drop Zone -->
-      <div id="dropZone" class="border-2 border-dashed border-gray-600 hover:border-blue-400 bg-gray-900/50 rounded-xl p-8 cursor-pointer transition-all text-center">
-        <input type="file" id="imageInput" class="hidden" accept="image/*" multiple />
-        <div class="flex flex-col items-center">
-          <svg class="w-14 h-14 text-gray-500 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-4-4V7a4 4 0 014-4h10a4 4 0 014 4v5a4 4 0 01-4 4h-2m-6 4h6m-3-4v4"/>
-          </svg>
-          <p class="text-lg font-semibold">Drag & Drop or Click to Upload</p>
-          <p class="text-sm text-gray-400 mt-1">Multiple photos supported • JPG, PNG, WEBP</p>
+<body>
+  <main class="max-w-6xl mx-auto px-4 py-8 sm:py-10">
+    <section class="glass rounded-3xl p-6 sm:p-8 shadow-2xl">
+      <div class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <h1 class="text-3xl sm:text-4xl font-extrabold tracking-tight">ID Photo Cut Sheet Studio</h1>
+          <p class="text-slate-300 mt-1">Upload photo, select size, crop, set copies, then move to next photo.</p>
+        </div>
+        <div class="rounded-xl border border-cyan-400/30 bg-cyan-400/10 px-4 py-2 text-sm">
+          Print format locked: <strong>A4</strong> at <strong>300 DPI</strong>
         </div>
       </div>
 
-      <!-- Photo Cards List -->
-      <div id="photoList" class="mt-6 space-y-3"></div>
-
-      <!-- Add More Button (shown after first upload) -->
-      <div id="addMoreWrapper" class="hidden mt-3 text-center">
-        <button id="addMoreBtn" class="text-blue-400 hover:text-blue-300 text-sm border border-blue-400/40 rounded-lg px-4 py-2 transition-all hover:bg-blue-400/10">
-          + Add More Photos
-        </button>
-      </div>
-
-      <!-- Advanced Options -->
-      <div class="mt-8 space-y-4">
-        <div class="text-center">
-          <button id="toggleAdvanced" class="text-blue-400 hover:text-blue-300 transition-all text-sm">Advanced Options</button>
-        </div>
-        <div id="advancedOptions" class="hidden bg-gray-900/50 p-6 rounded-lg border border-gray-700">
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-left">
-            <div>
-              <label class="block mb-1 text-sm font-medium">Width (px)</label>
-              <input type="number" id="width" value="390" class="w-full bg-gray-700 border border-gray-600 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"/>
-            </div>
-            <div>
-              <label class="block mb-1 text-sm font-medium">Height (px)</label>
-              <input type="number" id="height" value="480" class="w-full bg-gray-700 border border-gray-600 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"/>
-            </div>
-            <div>
-              <label class="block mb-1 text-sm font-medium">Spacing (px)</label>
-              <input type="number" id="spacing" value="10" class="w-full bg-gray-700 border border-gray-600 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"/>
-            </div>
-            <div>
-              <label class="block mb-1 text-sm font-medium">Border (px)</label>
-              <input type="number" id="border" value="2" class="w-full bg-gray-700 border border-gray-600 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"/>
-            </div>
+      <div class="mt-6 grid gap-5 lg:grid-cols-[1.1fr_0.9fr]">
+        <div class="glass rounded-2xl p-5">
+          <h2 class="font-bold text-xl">1. Upload Photos</h2>
+          <input id="imageInput" type="file" accept="image/*" multiple class="hidden" />
+          <div id="dropZone" class="mt-4 rounded-2xl border-2 border-dashed border-slate-500 p-8 text-center cursor-pointer hover:border-cyan-400 hover:bg-cyan-400/5 transition">
+            <p class="text-lg font-semibold">Drop images here or click to browse</p>
+            <p class="text-sm text-slate-400 mt-1">JPG, PNG, WEBP</p>
           </div>
+          <div class="mt-5" id="photoList"></div>
         </div>
 
-        <!-- Action Buttons -->
-        <div class="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4">
-          <button id="generateBtn" class="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-8 rounded-lg transition-all transform hover:scale-105 glow-shadow disabled:opacity-50 disabled:cursor-not-allowed">
-            Generate Sheet
-          </button>
-          <button id="downloadBtn" class="w-full sm:w-auto bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-8 rounded-lg transition-all transform hover:scale-105 hidden">
-            Download PDF
-          </button>
+        <div class="glass rounded-2xl p-5">
+          <h2 class="font-bold text-xl">2. Layout and Generate</h2>
+          <p class="text-sm text-slate-300 mt-1">All selected variants will be arranged automatically on A4 pages.</p>
+          <div class="mt-4 grid grid-cols-2 gap-3">
+            <label class="text-sm">Spacing (inch)
+              <input id="spacingIn" type="number" min="0" step="0.01" value="0.20" class="mt-1 w-full rounded-lg border border-slate-500 bg-slate-900 px-3 py-2" />
+            </label>
+            <label class="text-sm">Stroke (px)
+              <input id="stroke" type="number" min="0" value="2" class="mt-1 w-full rounded-lg border border-slate-500 bg-slate-900 px-3 py-2" />
+            </label>
+          </div>
+
+          <div class="mt-6 flex flex-col gap-3">
+            <button id="generateBtn" class="bg-amber-500 hover:bg-amber-400 text-slate-900 font-bold px-5 py-3 rounded-xl">Generate A4 PDF</button>
+            <button id="downloadBtn" class="hidden bg-emerald-500 hover:bg-emerald-400 text-slate-900 font-bold px-5 py-3 rounded-xl">Download PDF</button>
+            <button id="printBtn" class="hidden bg-cyan-500 hover:bg-cyan-400 text-slate-900 font-bold px-5 py-3 rounded-xl">Print PDF</button>
+            <p id="loading" class="hidden text-cyan-300 text-sm">Processing photos, please wait...</p>
+          </div>
+
+          <embed id="pdfPreview" type="application/pdf" class="hidden mt-5 w-full h-[480px] rounded-xl border border-slate-500" />
         </div>
-        <div id="loading" class="hidden text-blue-400 font-semibold text-center">Processing images... please wait</div>
       </div>
-
-      <!-- PDF Preview -->
-      <embed id="pdfPreview" type="application/pdf" class="w-full h-[500px] mt-6 hidden rounded-lg"/>
-    </div>
+    </section>
   </main>
 
-  <!-- Cropper Modal -->
-  <div id="cropperModal" class="cropper-modal-overlay hidden">
-    <div class="cropper-modal-box">
-      <h3 class="text-lg font-bold mb-3">Crop Photo</h3>
-      <div class="max-h-[400px] overflow-hidden rounded-lg">
-        <img id="cropModalImage" src="" style="max-width:100%; display:block;"/>
+  <div id="wizardModal" class="hidden fixed inset-0 bg-black/75 p-4 z-50 overflow-auto">
+    <div class="max-w-4xl mx-auto glass rounded-2xl p-5 sm:p-6">
+      <div class="flex items-start justify-between">
+        <div>
+          <h3 class="text-2xl font-bold">Configure Photo</h3>
+          <p id="wizardSubtitle" class="text-slate-300 text-sm mt-1"></p>
+        </div>
+        <button id="closeWizard" class="text-slate-300 hover:text-white text-2xl leading-none">&times;</button>
       </div>
-      <div class="flex gap-3 mt-4 justify-end">
-        <button id="cancelCropBtn" class="bg-gray-600 hover:bg-gray-500 text-white py-2 px-5 rounded-lg transition-all">Cancel</button>
-        <button id="confirmCropBtn" class="bg-blue-500 hover:bg-blue-600 text-white py-2 px-5 rounded-lg transition-all">Crop & Save</button>
+
+      <div class="mt-4 grid gap-5 lg:grid-cols-[1fr_1fr]">
+        <div>
+          <img id="wizardImage" src="" alt="Crop source" class="rounded-xl max-h-[420px] w-full object-contain bg-slate-900 border border-slate-600" />
+        </div>
+
+        <div>
+          <div id="stepSizeSection">
+            <p class="font-semibold mb-2">Step 1: Select size</p>
+            <div id="sizeGrid" class="grid grid-cols-1 gap-2">
+              <button data-size="passport" class="step-pill text-left rounded-xl p-3">
+                <strong>Passport Size</strong><br><span class="text-xs text-slate-300">1.6 in x 2 in at 300 DPI</span>
+              </button>
+              <button data-size="visa" class="step-pill text-left rounded-xl p-3">
+                <strong>Visa Print Size</strong><br><span class="text-xs text-slate-300">2 in x 2 in at 300 DPI</span>
+              </button>
+              <button data-size="stamp" class="step-pill text-left rounded-xl p-3">
+                <strong>Stamp Size</strong><br><span class="text-xs text-slate-300">20 mm x 25 mm at 300 DPI</span>
+              </button>
+              <button data-size="custom" class="step-pill text-left rounded-xl p-3">
+                <strong>Other Size</strong><br><span class="text-xs text-slate-300">Custom width and height</span>
+              </button>
+            </div>
+
+            <div id="customSizeBox" class="hidden mt-3 rounded-xl border border-slate-600 bg-slate-900 p-3">
+              <div class="grid grid-cols-2 gap-2">
+                <label class="text-sm">Width
+                  <input id="customWidth" type="number" min="1" value="35" class="mt-1 w-full rounded-lg border border-slate-500 bg-slate-800 px-2 py-1.5" />
+                </label>
+                <label class="text-sm">Height
+                  <input id="customHeight" type="number" min="1" value="45" class="mt-1 w-full rounded-lg border border-slate-500 bg-slate-800 px-2 py-1.5" />
+                </label>
+              </div>
+              <label class="text-sm mt-2 block">Unit
+                <select id="customUnit" class="mt-1 w-full rounded-lg border border-slate-500 bg-slate-800 px-2 py-1.5">
+                  <option value="mm">Millimeter (mm)</option>
+                  <option value="in">Inch (in)</option>
+                </select>
+              </label>
+            </div>
+          </div>
+
+          <div id="stepCropSection" class="hidden mt-4">
+            <p class="font-semibold mb-2">Step 2: Crop photo</p>
+            <p class="text-sm text-slate-300">Adjust crop area and click apply.</p>
+          </div>
+
+          <div id="stepCopiesSection" class="hidden mt-4">
+            <p class="font-semibold mb-2">Step 3: Number of copies</p>
+            <label class="text-sm">Copies (default 4)
+              <input id="copiesInput" type="number" min="1" max="54" value="4" class="mt-1 w-full rounded-lg border border-slate-500 bg-slate-900 px-3 py-2" />
+            </label>
+          </div>
+
+          <div class="mt-4 flex gap-2">
+            <button id="wizardConfirmBtn" class="bg-cyan-600 hover:bg-cyan-500 rounded-lg px-4 py-2 font-semibold">Confirm Size</button>
+          </div>
+
+          <p id="wizardStatus" class="text-sm text-slate-300 mt-3"></p>
+        </div>
       </div>
     </div>
   </div>
 
-  <!-- Feedback Button -->
-  <button id="feedbackBtn" class="fixed bottom-5 right-5 bg-red-500 hover:bg-red-600 text-white font-bold py-3 px-5 rounded-full shadow-lg transition-all transform hover:rotate-12">
-    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"/>
-    </svg>
-  </button>
+  <div id="toast" class="hidden fixed right-4 bottom-4 bg-slate-900 border border-slate-500 text-white px-4 py-3 rounded-lg z-[60]"></div>
 
-  <!-- Feedback Modal -->
-  <div id="feedbackModal" class="fixed inset-0 bg-black/70 flex items-center justify-center p-4 z-20 hidden">
-    <div class="bg-gray-800 border border-gray-700 rounded-2xl shadow-2xl p-8 max-w-md w-full relative">
-      <button id="closeModal" class="absolute top-4 right-4 text-gray-400 hover:text-white text-2xl">&times;</button>
-      <h2 class="text-2xl font-bold mb-4">Feedback / Bug Report</h2>
-      <form id="feedbackForm" class="space-y-4">
-        <input type="text" name="contact" placeholder="Your Contact (Email or Phone)" required class="w-full bg-gray-700 border border-gray-600 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-blue-500"/>
-        <textarea name="message" placeholder="Describe your issue or suggestion..." required rows="4" class="w-full bg-gray-700 border border-gray-600 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
-        <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg transition-all">Submit</button>
-      </form>
-    </div>
-  </div>
-
-  <!-- Notification -->
-  <div id="notification" class="fixed bottom-1/2 right-5 text-white py-2 px-4 rounded-lg shadow-lg transform translate-x-[120%] transition-transform duration-500 z-50">
-    <p id="notification-message"></p>
-  </div>
-
-  <script src="https://cdn.jsdelivr.net/npm/particles.js@2.0.0/particles.min.js"></script>
   <script>
-    emailjs.init("XJqjmVHK4ISEX0Zam");
+    const DPI = 300;
+    const presets = {
+      passport: { label: "Passport (1.6 x 2 in)", widthIn: 1.6, heightIn: 2 },
+      visa: { label: "Visa (2 x 2 in)", widthIn: 2, heightIn: 2 },
+      stamp: { label: "Stamp (20 x 25 mm)", widthMm: 20, heightMm: 25 },
+    };
 
-    particlesJS('particles-js', {
-      particles: {
-        number: { value: 80, density: { enable: true, value_area: 800 } },
-        color: { value: "#4a5568" }, shape: { type: "circle" },
-        opacity: { value: 0.5, random: true }, size: { value: 3, random: true },
-        line_linked: { enable: true, distance: 150, color: "#718096", opacity: 0.4, width: 1 },
-        move: { enable: true, speed: 2, direction: "none", random: false, straight: false, out_mode: "out" }
-      },
-      interactivity: {
-        detect_on: "canvas",
-        events: { onhover: { enable: true, mode: "repulse" }, onclick: { enable: true, mode: "push" } },
-        modes: { repulse: { distance: 100 }, push: { particles_nb: 4 } }
-      },
-      retina_detect: true
-    });
-
-    // ---- State ----
-    // photos: Array of { id, originalFile, croppedFile, previewUrl, copies }
-    let photos = [];
+    const originals = [];
     let nextId = 0;
-
-    // Cropper modal state
     let activeCropper = null;
-    let pendingCropId = null;
+    let currentPhotoId = null;
+    let selectedSizeKey = "passport";
+    let wizardQueue = [];
+    let wizardIndex = 0;
+    let wizardStep = "size";
+    let pendingVariant = null;
+    let pdfUrl = null;
 
-    // DOM refs
-    const dropZone = document.getElementById('dropZone');
-    const imageInput = document.getElementById('imageInput');
-    const photoList = document.getElementById('photoList');
-    const addMoreWrapper = document.getElementById('addMoreWrapper');
-    const addMoreBtn = document.getElementById('addMoreBtn');
-    const generateBtn = document.getElementById('generateBtn');
-    const downloadBtn = document.getElementById('downloadBtn');
-    const pdfPreview = document.getElementById('pdfPreview');
-    const loading = document.getElementById('loading');
-    const toggleAdvanced = document.getElementById('toggleAdvanced');
-    const advancedOptions = document.getElementById('advancedOptions');
-    const cropperModal = document.getElementById('cropperModal');
-    const cropModalImage = document.getElementById('cropModalImage');
-    const confirmCropBtn = document.getElementById('confirmCropBtn');
-    const cancelCropBtn = document.getElementById('cancelCropBtn');
-    const notification = document.getElementById('notification');
-    const notifMsg = document.getElementById('notification-message');
-    const feedbackBtn = document.getElementById('feedbackBtn');
-    const feedbackModal = document.getElementById('feedbackModal');
-    const closeModal = document.getElementById('closeModal');
-    const feedbackForm = document.getElementById('feedbackForm');
+    const dropZone = document.getElementById("dropZone");
+    const imageInput = document.getElementById("imageInput");
+    const photoList = document.getElementById("photoList");
+    const spacingInInput = document.getElementById("spacingIn");
+    const strokeInput = document.getElementById("stroke");
+    const generateBtn = document.getElementById("generateBtn");
+    const downloadBtn = document.getElementById("downloadBtn");
+    const printBtn = document.getElementById("printBtn");
+    const loading = document.getElementById("loading");
+    const pdfPreview = document.getElementById("pdfPreview");
 
-    // ---- Notifications ----
-    function showNotification(msg, isError = true) {
-      notifMsg.textContent = msg;
-      notification.classList.remove('bg-red-500', 'bg-green-500');
-      notification.classList.add(isError ? 'bg-red-500' : 'bg-green-500');
-      notification.classList.remove('translate-x-[120%]');
-      notification.classList.add('translate-x-0');
-      setTimeout(() => {
-        notification.classList.remove('translate-x-0');
-        notification.classList.add('translate-x-[120%]');
-      }, 3000);
+    const wizardModal = document.getElementById("wizardModal");
+    const closeWizard = document.getElementById("closeWizard");
+    const wizardImage = document.getElementById("wizardImage");
+    const wizardSubtitle = document.getElementById("wizardSubtitle");
+    const wizardStatus = document.getElementById("wizardStatus");
+    const sizeGrid = document.getElementById("sizeGrid");
+    const customSizeBox = document.getElementById("customSizeBox");
+    const customWidth = document.getElementById("customWidth");
+    const customHeight = document.getElementById("customHeight");
+    const customUnit = document.getElementById("customUnit");
+    const copiesInput = document.getElementById("copiesInput");
+    const stepSizeSection = document.getElementById("stepSizeSection");
+    const stepCropSection = document.getElementById("stepCropSection");
+    const stepCopiesSection = document.getElementById("stepCopiesSection");
+    const wizardConfirmBtn = document.getElementById("wizardConfirmBtn");
+    const toast = document.getElementById("toast");
+
+    function showToast(message, isError = false) {
+      toast.textContent = message;
+      toast.classList.remove("hidden", "border-red-400", "border-emerald-400");
+      toast.classList.add(isError ? "border-red-400" : "border-emerald-400");
+      setTimeout(() => toast.classList.add("hidden"), 3000);
     }
 
-    // ---- Render Photo Cards ----
+    function mmToPx(mm) {
+      return Math.round((mm / 25.4) * DPI);
+    }
+
+    function inToPx(inches) {
+      return Math.round(inches * DPI);
+    }
+
+    function getSizeConfig() {
+      if (selectedSizeKey === "custom") {
+        const w = Math.max(1, Number(customWidth.value || 1));
+        const h = Math.max(1, Number(customHeight.value || 1));
+        const unit = customUnit.value;
+        const widthPx = unit === "mm" ? mmToPx(w) : inToPx(w);
+        const heightPx = unit === "mm" ? mmToPx(h) : inToPx(h);
+        return { label: `Custom (${w} ${unit} x ${h} ${unit})`, widthPx, heightPx };
+      }
+
+      const p = presets[selectedSizeKey];
+      if (p.widthIn) {
+        return { label: p.label, widthPx: inToPx(p.widthIn), heightPx: inToPx(p.heightIn) };
+      }
+      return { label: p.label, widthPx: mmToPx(p.widthMm), heightPx: mmToPx(p.heightMm) };
+    }
+
+    function getPhotoById(id) {
+      return originals.find((p) => p.id === id);
+    }
+
+    function setWizardStep(step) {
+      wizardStep = step;
+      stepSizeSection.classList.toggle("hidden", step !== "size");
+      stepCropSection.classList.toggle("hidden", step !== "crop");
+      stepCopiesSection.classList.toggle("hidden", step !== "copies");
+
+      if (step === "size") {
+        wizardConfirmBtn.textContent = "Confirm Size";
+      } else if (step === "crop") {
+        wizardConfirmBtn.textContent = "Apply Crop";
+      } else {
+        wizardConfirmBtn.textContent = "Confirm Copies";
+      }
+    }
+
+    function highlightSelectedSize() {
+      sizeGrid.querySelectorAll("button").forEach((btn) => {
+        btn.classList.toggle("active", btn.dataset.size === selectedSizeKey);
+      });
+      customSizeBox.classList.toggle("hidden", selectedSizeKey !== "custom");
+    }
+
     function renderPhotoList() {
-      photoList.innerHTML = '';
-      photos.forEach(photo => {
-        const card = document.createElement('div');
-        card.className = 'photo-card flex items-center gap-4 bg-gray-900/60 border border-gray-700 rounded-xl p-4';
+      photoList.innerHTML = "";
+      originals.forEach((photo) => {
+        const card = document.createElement("div");
+        card.className = "rounded-xl border border-slate-600 bg-slate-900/70 p-4 mb-3";
+
+        const variants = photo.variants.map((v, idx) => (
+          `<div class="text-xs bg-slate-800 border border-slate-600 rounded-lg px-2 py-1">${idx + 1}. ${v.label} - ${v.copies} copies</div>`
+        )).join("");
+
         card.innerHTML = `
-          <img src="${photo.previewUrl}" class="w-16 h-20 object-cover rounded-lg border border-gray-600 flex-shrink-0" />
-          <div class="flex-1 min-w-0">
-            <p class="text-sm font-medium text-gray-200 truncate">${photo.originalFile.name}</p>
-            <p class="text-xs text-gray-500 mt-0.5">${photo.croppedFile ? '✅ Cropped' : '⚠️ Not cropped'}</p>
-          </div>
-          <div class="flex flex-col items-center gap-1">
-            <label class="text-xs text-gray-400">Copies</label>
-            <input type="number" value="${photo.copies}" min="1" max="54"
-              class="bg-gray-700 border border-gray-600 rounded-lg w-16 p-1.5 text-center text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-              data-id="${photo.id}" />
-          </div>
-          <div class="flex flex-col gap-2">
-            <button class="crop-btn text-xs bg-blue-500/20 hover:bg-blue-500/40 text-blue-300 border border-blue-500/30 px-3 py-1.5 rounded-lg transition-all" data-id="${photo.id}">Crop</button>
-            <button class="remove-btn text-xs bg-red-500/20 hover:bg-red-500/40 text-red-400 border border-red-500/30 px-3 py-1.5 rounded-lg transition-all" data-id="${photo.id}">Remove</button>
+          <div class="flex gap-4 items-start">
+            <img src="${photo.previewUrl}" class="w-20 h-24 object-cover rounded-lg border border-slate-500" />
+            <div class="flex-1 min-w-0">
+              <p class="font-semibold truncate">${photo.name}</p>
+              <p class="text-xs text-slate-300 mt-1">Variants: ${photo.variants.length}</p>
+              <div class="mt-2 grid gap-1">${variants || '<p class="text-xs text-slate-400">No size selected yet.</p>'}</div>
+            </div>
+            <div class="flex flex-col gap-2">
+              <button class="config-btn bg-cyan-700 hover:bg-cyan-600 text-sm px-3 py-1.5 rounded-lg" data-id="${photo.id}">Configure</button>
+              <button class="remove-btn bg-rose-700 hover:bg-rose-600 text-sm px-3 py-1.5 rounded-lg" data-id="${photo.id}">Remove</button>
+            </div>
           </div>
         `;
         photoList.appendChild(card);
       });
 
-      // Bind copies inputs
-      photoList.querySelectorAll('input[type=number]').forEach(input => {
-        input.addEventListener('change', e => {
-          const id = parseInt(e.target.dataset.id);
-          const photo = photos.find(p => p.id === id);
-          if (photo) photo.copies = Math.max(1, parseInt(e.target.value) || 1);
+      document.querySelectorAll(".config-btn").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          const id = Number(btn.dataset.id);
+          openWizardForPhoto(id, [id]);
         });
       });
 
-      // Bind crop buttons
-      photoList.querySelectorAll('.crop-btn').forEach(btn => {
-        btn.addEventListener('click', e => {
-          const id = parseInt(e.target.dataset.id);
-          openCropper(id);
-        });
-      });
-
-      // Bind remove buttons
-      photoList.querySelectorAll('.remove-btn').forEach(btn => {
-        btn.addEventListener('click', e => {
-          const id = parseInt(e.target.dataset.id);
-          photos = photos.filter(p => p.id !== id);
+      document.querySelectorAll(".remove-btn").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          const id = Number(btn.dataset.id);
+          const idx = originals.findIndex((p) => p.id === id);
+          if (idx >= 0) originals.splice(idx, 1);
           renderPhotoList();
-          if (photos.length === 0) addMoreWrapper.classList.add('hidden');
         });
       });
-
-      addMoreWrapper.classList.toggle('hidden', photos.length === 0);
     }
 
-    // ---- Add Files ----
-    function addFiles(files) {
-      const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
-      let added = 0;
-      Array.from(files).forEach(file => {
+    function addFiles(fileList) {
+      const validTypes = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
+      const newIds = [];
+
+      Array.from(fileList).forEach((file) => {
         if (!validTypes.includes(file.type)) return;
-        const photo = {
-          id: nextId++,
-          originalFile: file,
-          croppedFile: null,
+        const id = nextId++;
+        originals.push({
+          id,
+          file,
+          name: file.name,
           previewUrl: URL.createObjectURL(file),
-          copies: 6
-        };
-        photos.push(photo);
-        added++;
+          variants: [],
+        });
+        newIds.push(id);
       });
-      if (added === 0) showNotification("Please upload valid image files (JPG, PNG, WEBP).");
+
+      if (newIds.length === 0) {
+        showToast("Please upload valid image files.", true);
+        return;
+      }
+
       renderPhotoList();
+      startWizardQueue(newIds);
     }
 
-    // ---- Drop Zone ----
-    dropZone.addEventListener('click', () => imageInput.click());
-    dropZone.addEventListener('dragover', e => {
-      e.preventDefault();
-      dropZone.classList.add('border-blue-400', 'bg-gray-700/50');
-    });
-    dropZone.addEventListener('dragleave', () => {
-      dropZone.classList.remove('border-blue-400', 'bg-gray-700/50');
-    });
-    dropZone.addEventListener('drop', e => {
-      e.preventDefault();
-      dropZone.classList.remove('border-blue-400', 'bg-gray-700/50');
-      addFiles(e.dataTransfer.files);
-    });
-    imageInput.addEventListener('change', () => {
-      addFiles(imageInput.files);
-      imageInput.value = '';
-    });
-    addMoreBtn.addEventListener('click', () => imageInput.click());
+    function startWizardQueue(ids) {
+      wizardQueue = ids;
+      wizardIndex = 0;
+      if (wizardQueue.length > 0) {
+        openWizardForPhoto(wizardQueue[wizardIndex], wizardQueue);
+      }
+    }
 
-    // ---- Cropper Modal ----
-    function openCropper(id) {
-      const photo = photos.find(p => p.id === id);
+    function openWizardForPhoto(photoId, queue = []) {
+      const photo = getPhotoById(photoId);
       if (!photo) return;
-      pendingCropId = id;
-      cropModalImage.src = photo.previewUrl;
-      cropperModal.classList.remove('hidden');
-      if (activeCropper) activeCropper.destroy();
-      activeCropper = new Cropper(cropModalImage, {
-        aspectRatio: 384 / 472,
-        viewMode: 1,
-        dragMode: 'move',
-        autoCropArea: 1,
-      });
-    }
 
-    confirmCropBtn.addEventListener('click', () => {
-      if (!activeCropper || pendingCropId === null) return;
-      const canvas = activeCropper.getCroppedCanvas({ width: 400, height: 480 });
-      canvas.toBlob(blob => {
-        const photo = photos.find(p => p.id === pendingCropId);
-        if (!photo) return;
-        photo.croppedFile = new File([blob], 'cropped-' + photo.originalFile.name, { type: 'image/png' });
-        photo.previewUrl = URL.createObjectURL(blob);
+      if (queue.length > 0) {
+        wizardQueue = queue;
+      }
+
+      currentPhotoId = photoId;
+      pendingVariant = null;
+      wizardModal.classList.remove("hidden");
+      wizardImage.src = photo.previewUrl;
+      wizardSubtitle.textContent = `Photo: ${photo.name}`;
+      copiesInput.value = "4";
+      wizardStatus.textContent = "Step 1: Select a size and click confirm.";
+      selectedSizeKey = "passport";
+      highlightSelectedSize();
+      setWizardStep("size");
+
+      if (activeCropper) {
         activeCropper.destroy();
         activeCropper = null;
-        pendingCropId = null;
-        cropperModal.classList.add('hidden');
-        renderPhotoList();
-        showNotification("Photo cropped successfully.", false);
-      }, 'image/png');
-    });
+      }
+    }
 
-    cancelCropBtn.addEventListener('click', () => {
-      if (activeCropper) { activeCropper.destroy(); activeCropper = null; }
-      pendingCropId = null;
-      cropperModal.classList.add('hidden');
-    });
+    function applySizeAndStartCrop() {
+      const cfg = getSizeConfig();
+      const photo = getPhotoById(currentPhotoId);
+      if (!photo) return;
 
-    // ---- Advanced Options ----
-    toggleAdvanced.addEventListener('click', () => {
-      const visible = advancedOptions.style.display === 'block';
-      advancedOptions.style.display = visible ? 'none' : 'block';
-      toggleAdvanced.textContent = visible ? 'Advanced Options' : 'Hide Advanced Options';
-    });
+      pendingVariant = { ...cfg };
+      wizardImage.src = photo.previewUrl;
+      wizardStatus.textContent = `Step 2: Crop for ${cfg.label}.`;
 
-    // ---- Generate PDF ----
-    generateBtn.addEventListener('click', () => {
-      if (photos.length === 0) {
-        showNotification("Please upload at least one photo.");
+      setTimeout(() => {
+        if (activeCropper) activeCropper.destroy();
+        activeCropper = new Cropper(wizardImage, {
+          aspectRatio: cfg.widthPx / cfg.heightPx,
+          viewMode: 1,
+          dragMode: "move",
+          autoCropArea: 1,
+        });
+        setWizardStep("crop");
+      }, 10);
+    }
+
+    function applyCrop() {
+      if (!activeCropper || !pendingVariant) {
+        showToast("Please confirm size first.", true);
+        return;
+      }
+
+      const canvas = activeCropper.getCroppedCanvas({
+        width: pendingVariant.widthPx,
+        height: pendingVariant.heightPx,
+      });
+
+      canvas.toBlob((blob) => {
+        if (!blob) {
+          showToast("Failed to crop image.", true);
+          return;
+        }
+
+        pendingVariant.blob = blob;
+        activeCropper.destroy();
+        activeCropper = null;
+        wizardStatus.textContent = "Step 3: Enter copies and confirm.";
+        setWizardStep("copies");
+      }, "image/png");
+    }
+
+    function saveVariantAndGoNext() {
+      const photo = getPhotoById(currentPhotoId);
+      if (!photo || !pendingVariant || !pendingVariant.blob) {
+        showToast("Please complete all steps.", true);
+        return;
+      }
+
+      const copies = Math.max(1, Number(copiesInput.value || 4));
+      const file = new File([pendingVariant.blob], `variant-${photo.id}-${Date.now()}.png`, { type: "image/png" });
+
+      photo.variants.push({
+        label: pendingVariant.label,
+        widthPx: pendingVariant.widthPx,
+        heightPx: pendingVariant.heightPx,
+        copies,
+        file,
+        previewUrl: URL.createObjectURL(pendingVariant.blob),
+      });
+
+      renderPhotoList();
+      pendingVariant = null;
+      moveToNextInQueue();
+    }
+
+    function moveToNextInQueue() {
+      if (wizardQueue.length > 0) {
+        wizardIndex += 1;
+        if (wizardIndex < wizardQueue.length) {
+          openWizardForPhoto(wizardQueue[wizardIndex], wizardQueue);
+          return;
+        }
+      }
+
+      wizardModal.classList.add("hidden");
+      currentPhotoId = null;
+      if (activeCropper) {
+        activeCropper.destroy();
+        activeCropper = null;
+      }
+      showToast("Setup complete. You can now generate A4 PDF.");
+    }
+
+    function collectVariants() {
+      const all = [];
+      originals.forEach((photo) => {
+        photo.variants.forEach((variant) => all.push(variant));
+      });
+      return all;
+    }
+
+    function generatePdf() {
+      const variants = collectVariants();
+      if (variants.length === 0) {
+        showToast("Add at least one configured photo before generating.", true);
         return;
       }
 
       const formData = new FormData();
-      photos.forEach((photo, i) => {
-        // Use cropped file if available, else original
-        formData.append(`image_${i}`, photo.croppedFile || photo.originalFile);
-        formData.append(`copies_${i}`, photo.copies);
+      formData.append("item_count", String(variants.length));
+      formData.append("spacing_in", String(Math.max(0, Number(spacingInInput.value || 0.2))));
+      formData.append("stroke", String(Math.max(0, Number(strokeInput.value || 2))));
+
+      variants.forEach((v, i) => {
+        formData.append(`image_${i}`, v.file);
+        formData.append(`copies_${i}`, String(v.copies));
+        formData.append(`width_px_${i}`, String(v.widthPx));
+        formData.append(`height_px_${i}`, String(v.heightPx));
       });
-      formData.append('width', document.getElementById('width').value);
-      formData.append('height', document.getElementById('height').value);
-      formData.append('spacing', document.getElementById('spacing').value);
-      formData.append('border', document.getElementById('border').value);
 
-      loading.classList.remove('hidden');
+      loading.classList.remove("hidden");
       generateBtn.disabled = true;
-      downloadBtn.classList.add('hidden');
-      pdfPreview.classList.add('hidden');
+      pdfPreview.classList.add("hidden");
+      downloadBtn.classList.add("hidden");
+      printBtn.classList.add("hidden");
 
-      fetch('/process', { method: 'POST', body: formData })
-        .then(async response => {
-          if (response.status === 429) { showNotification("Server Daily Quota Exceeded. Please try again later."); return null; }
-          if (response.status === 410) { showNotification("Cannot Detect Face/Background in one of the images."); return null; }
-          if (response.status === 500) { showNotification("Internal Error, try again later."); return null; }
-          if (!response.ok) throw new Error("Processing failed.");
+      fetch("/process", { method: "POST", body: formData })
+        .then(async (response) => {
+          if (!response.ok) {
+            if (response.status === 429) throw new Error("remove.bg quota exceeded.");
+            if (response.status === 410) throw new Error("Face detection failed in one of the images.");
+            if (response.status === 403) throw new Error("remove.bg authentication failed. Check API key.");
+            const msg = await response.text();
+            throw new Error(msg || "Processing failed.");
+          }
           return response.blob();
         })
-        .then(blob => {
-          if (!blob) return;
-          const url = URL.createObjectURL(blob);
-          pdfPreview.classList.remove('hidden');
-          pdfPreview.src = url;
-          downloadBtn.classList.remove('hidden');
+        .then((blob) => {
+          if (pdfUrl) URL.revokeObjectURL(pdfUrl);
+          pdfUrl = URL.createObjectURL(blob);
+          pdfPreview.src = pdfUrl;
+          pdfPreview.classList.remove("hidden");
+          downloadBtn.classList.remove("hidden");
+          printBtn.classList.remove("hidden");
           downloadBtn.onclick = () => {
-            const link = document.createElement('a');
-            link.href = url;
-            link.download = 'passport-sheet.pdf';
-            link.click();
+            const a = document.createElement("a");
+            a.href = pdfUrl;
+            a.download = "id-photo-cut-sheet.pdf";
+            a.click();
           };
-          showNotification("PDF generated successfully!", false);
+          printBtn.onclick = () => {
+            const iframe = document.createElement("iframe");
+            iframe.style.position = "fixed";
+            iframe.style.right = "0";
+            iframe.style.bottom = "0";
+            iframe.style.width = "0";
+            iframe.style.height = "0";
+            iframe.style.border = "0";
+            iframe.src = pdfUrl;
+            document.body.appendChild(iframe);
+            iframe.onload = () => {
+              iframe.contentWindow.focus();
+              iframe.contentWindow.print();
+            };
+          };
+          showToast("A4 PDF generated successfully.");
         })
-        .catch(err => {
+        .catch((err) => {
           console.error(err);
-          showNotification("Image processing failed. Try again later.");
+          showToast(err.message || "Failed to generate PDF.", true);
         })
         .finally(() => {
-          loading.classList.add('hidden');
+          loading.classList.add("hidden");
           generateBtn.disabled = false;
         });
+    }
+
+    dropZone.addEventListener("click", () => imageInput.click());
+
+    dropZone.addEventListener("dragover", (e) => {
+      e.preventDefault();
+      dropZone.classList.add("border-cyan-400", "bg-cyan-400/5");
     });
 
-    // ---- Feedback ----
-    feedbackBtn.addEventListener('click', () => feedbackModal.classList.remove('hidden'));
-    closeModal.addEventListener('click', () => feedbackModal.classList.add('hidden'));
-    feedbackForm.addEventListener('submit', e => {
+    dropZone.addEventListener("dragleave", () => {
+      dropZone.classList.remove("border-cyan-400", "bg-cyan-400/5");
+    });
+
+    dropZone.addEventListener("drop", (e) => {
       e.preventDefault();
-      const contact = feedbackForm.contact.value.trim();
-      const message = feedbackForm.message.value.trim();
-      if (!contact || !message) { showNotification("Please fill out all fields."); return; }
-      const btn = feedbackForm.querySelector('button[type="submit"]');
-      btn.disabled = true; btn.textContent = 'Submitting...';
-      emailjs.send("service_aoewzsq", "template_hbw13lt", {
-        contact, message,
-        user_agent: navigator.userAgent,
-        time: new Date().toLocaleString()
-      }).then(() => {
-        showNotification("Feedback submitted. Thank you!", false);
-        feedbackModal.classList.add('hidden');
-        feedbackForm.reset();
-      }).catch(err => {
-        console.error(err);
-        showNotification("Failed to send feedback. Please try again.");
-      }).finally(() => {
-        btn.disabled = false; btn.textContent = 'Submit';
+      dropZone.classList.remove("border-cyan-400", "bg-cyan-400/5");
+      addFiles(e.dataTransfer.files);
+    });
+
+    imageInput.addEventListener("change", () => {
+      addFiles(imageInput.files);
+      imageInput.value = "";
+    });
+
+    sizeGrid.querySelectorAll("button").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        selectedSizeKey = btn.dataset.size;
+        highlightSelectedSize();
       });
     });
+
+    wizardConfirmBtn.addEventListener("click", () => {
+      if (wizardStep === "size") {
+        applySizeAndStartCrop();
+      } else if (wizardStep === "crop") {
+        applyCrop();
+      } else {
+        saveVariantAndGoNext();
+      }
+    });
+
+    closeWizard.addEventListener("click", () => {
+      wizardModal.classList.add("hidden");
+      pendingVariant = null;
+      if (activeCropper) {
+        activeCropper.destroy();
+        activeCropper = null;
+      }
+    });
+
+    generateBtn.addEventListener("click", generatePdf);
   </script>
 </body>
 </html>

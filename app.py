@@ -10,6 +10,9 @@ import os
 
 app = Flask(__name__)
 
+# Load variables from .env for local development.
+load_dotenv()
+
 REMOVE_BG_API_KEY = os.getenv("REMOVE_BG_API_KEY")
 
 cloudinary.config(
@@ -26,6 +29,9 @@ def index():
 
 def process_single_image(input_image_bytes):
     """Remove background, enhance, and return a ready-to-paste passport PIL image."""
+    if not REMOVE_BG_API_KEY:
+        raise ValueError("missing_remove_bg_api_key")
+
     # Step 1: Background removal
     response = requests.post(
         "https://api.remove.bg/v1.0/removebg",
@@ -94,88 +100,113 @@ def process_single_image(input_image_bytes):
 def process():
     print("==== /process endpoint hit ====")
 
-    # Layout settings
-    passport_width = int(request.form.get("width", 390))
-    passport_height = int(request.form.get("height", 480))
-    border = int(request.form.get("border", 2))
-    spacing = int(request.form.get("spacing", 10))
+    # Layout settings (A4 at 300 DPI)
+    stroke = int(request.form.get("stroke", request.form.get("border", 2)))
+    try:
+        spacing_in = float(request.form.get("spacing_in", 0))
+    except (TypeError, ValueError):
+        spacing_in = 0
+
+    if spacing_in > 0:
+        spacing = max(0, int(spacing_in * 300))
+    else:
+        # Fallback for legacy clients that still send spacing in px.
+        spacing = max(0, int(request.form.get("spacing", 60)))
     margin_x = 10
     margin_y = 10
-    horizontal_gap = 10
     a4_w, a4_h = 2480, 3508
 
-    # Collect images and their copy counts
-    # Supports: image_0, image_1, ... and copies_0, copies_1, ...
-    # Also supports legacy single: image + copies
-    images_data = []
+    # New mode: flattened print items where each item can have its own size.
+    print_items = []
+    item_count = int(request.form.get("item_count", 0))
 
-    # Multi-image mode
-    i = 0
-    while f"image_{i}" in request.files:
-        file = request.files[f"image_{i}"]
-        copies = int(request.form.get(f"copies_{i}", 6))
-        images_data.append((file.read(), copies))
-        i += 1
+    if item_count > 0:
+        for i in range(item_count):
+            file = request.files.get(f"image_{i}")
+            if not file:
+                continue
+            copies = max(1, int(request.form.get(f"copies_{i}", 4)))
+            width_px = max(50, int(request.form.get(f"width_px_{i}", 390)))
+            height_px = max(50, int(request.form.get(f"height_px_{i}", 480)))
+            print_items.append((file.read(), copies, width_px, height_px, f"item_{i}"))
 
-    # Fallback to single image mode
-    if not images_data and "image" in request.files:
-        file = request.files["image"]
-        copies = int(request.form.get("copies", 6))
-        images_data.append((file.read(), copies))
+    # Legacy mode compatibility (single size for all images)
+    if not print_items:
+        passport_width = int(request.form.get("width", 390))
+        passport_height = int(request.form.get("height", 480))
 
-    if not images_data:
+        i = 0
+        while f"image_{i}" in request.files:
+            file = request.files[f"image_{i}"]
+            copies = max(1, int(request.form.get(f"copies_{i}", 4)))
+            print_items.append((file.read(), copies, passport_width, passport_height, f"legacy_{i}"))
+            i += 1
+
+        if not print_items and "image" in request.files:
+            file = request.files["image"]
+            copies = max(1, int(request.form.get("copies", 4)))
+            print_items.append((file.read(), copies, passport_width, passport_height, "legacy_single"))
+
+    if not print_items:
         return "No image uploaded", 400
 
-    print(f"DEBUG: Processing {len(images_data)} image(s)")
+    print(f"DEBUG: Processing {len(print_items)} print item(s)")
 
-    # Process all images
-    passport_images = []
-    for idx, (img_bytes, copies) in enumerate(images_data):
-        print(f"DEBUG: Processing image {idx + 1} with {copies} copies")
+    # Process all print items (image + per-item size + copies)
+    processed_items = []
+    for idx, (img_bytes, copies, width_px, height_px, item_name) in enumerate(print_items):
+        print(
+            f"DEBUG: Processing {item_name} ({idx + 1}/{len(print_items)}) "
+            f"with size {width_px}x{height_px} and {copies} copies"
+        )
         try:
             img = process_single_image(img_bytes)
-            img = img.resize((passport_width, passport_height), Image.LANCZOS)
-            img = ImageOps.expand(img, border=border, fill="black")
-            passport_images.append((img, copies))
+            img = img.resize((width_px, height_px), Image.LANCZOS)
+            img = ImageOps.expand(img, border=stroke, fill="black")
+            processed_items.append((img, copies, width_px + 2 * stroke, height_px + 2 * stroke))
         except ValueError as e:
             err_str = str(e)
             if "410" in err_str or "face" in err_str.lower():
                 return {"error": "face_detection_failed"}, 410
             elif "429" in err_str or "quota" in err_str.lower():
                 return {"error": "quota_exceeded"}, 429
+            elif "auth_failed" in err_str.lower() or "403" in err_str:
+                return {"error": "remove_bg_auth_failed"}, 403
+            elif "missing_remove_bg_api_key" in err_str:
+                return {"error": "missing_remove_bg_api_key"}, 500
             else:
                 print(err_str)
                 return {"error": err_str}, 500
-                
-
-    paste_w = passport_width + 2 * border
-    paste_h = passport_height + 2 * border
 
     # Build all pages
     pages = []
     current_page = Image.new("RGB", (a4_w, a4_h), "white")
     x, y = margin_x, margin_y
+    row_max_height = 0
 
     def new_page():
-        nonlocal current_page, x, y
+        nonlocal current_page, x, y, row_max_height
         pages.append(current_page)
         current_page = Image.new("RGB", (a4_w, a4_h), "white")
         x, y = margin_x, margin_y
+        row_max_height = 0
 
-    for passport_img, copies in passport_images:
+    for passport_img, copies, paste_w, paste_h in processed_items:
         for _ in range(copies):
-            # Move to next row if needed
+            # Move to next row if this photo does not fit in current row.
             if x + paste_w > a4_w - margin_x:
                 x = margin_x
-                y += paste_h + spacing
+                y += row_max_height + spacing
+                row_max_height = 0
 
-            # Move to next page if needed
+            # Move to next page if this row position overflows page height.
             if y + paste_h > a4_h - margin_y:
                 new_page()
 
             current_page.paste(passport_img, (x, y))
             print(f"DEBUG: Placed at x={x}, y={y}")
-            x += paste_w + horizontal_gap
+            row_max_height = max(row_max_height, paste_h)
+            x += paste_w + spacing
 
     pages.append(current_page)
     print(f"DEBUG: Total pages = {len(pages)}")
@@ -199,7 +230,7 @@ def process():
         output,
         mimetype="application/pdf",
         as_attachment=True,
-        download_name="passport-sheet.pdf",
+        download_name="id-photo-cut-sheet.pdf",
     )
 
 
