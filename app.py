@@ -115,6 +115,10 @@ def process():
     margin_x = 10
     margin_y = 10
     a4_w, a4_h = 2480, 3508
+    try:
+        skip_slots = max(0, int(request.form.get("skip_slots", 0)))
+    except (TypeError, ValueError):
+        skip_slots = 0
 
     # New mode: flattened print items where each item can have its own size.
     print_items = []
@@ -193,6 +197,21 @@ def process():
 
     for passport_img, copies, paste_w, paste_h in processed_items:
         for _ in range(copies):
+            # Reserve leading empty slots without consuming actual copy count.
+            while skip_slots > 0:
+                if x + paste_w > a4_w - margin_x:
+                    x = margin_x
+                    y += row_max_height + spacing
+                    row_max_height = 0
+
+                if y + paste_h > a4_h - margin_y:
+                    new_page()
+
+                skip_slots -= 1
+                row_max_height = max(row_max_height, paste_h)
+                x += paste_w + spacing
+                print(f"DEBUG: Skipped slot, remaining skips = {skip_slots}")
+
             # Move to next row if this photo does not fit in current row.
             if x + paste_w > a4_w - margin_x:
                 x = margin_x

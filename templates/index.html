@@ -1,296 +1,333 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>ID Photo Cut Sheet Studio</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css" rel="stylesheet" />
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
-  <style>
-    :root {
-      --bg-1: #0b1220;
-      --bg-2: #102338;
-      --card: #111827cc;
-      --line: #334155;
-    }
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Photo Cut Sheet Studio</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css" rel="stylesheet" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
+    <style>
+        :root {
+            --bg-1: #0b1220;
+            --bg-2: #102338;
+            --card: #111827cc;
+            --line: #334155;
+        }
 
-    body {
-      font-family: "Manrope", sans-serif;
-      min-height: 100vh;
-      background:
-        radial-gradient(60rem 30rem at 12% -5%, #164e63 0%, transparent 60%),
-        radial-gradient(45rem 25rem at 100% 0%, #78350f 0%, transparent 60%),
-        linear-gradient(160deg, var(--bg-1), var(--bg-2));
-      color: #e2e8f0;
-    }
+        body {
+            font-family: "Manrope", sans-serif;
+            min-height: 100vh;
+            background:
+                radial-gradient(60rem 30rem at 12% -5%, #164e63 0%, transparent 60%),
+                radial-gradient(45rem 25rem at 100% 0%, #78350f 0%, transparent 60%),
+                linear-gradient(160deg, var(--bg-1), var(--bg-2));
+            color: #e2e8f0;
+        }
 
-    .glass {
-      background: var(--card);
-      border: 1px solid var(--line);
-      backdrop-filter: blur(10px);
-    }
+        .glass {
+            background: var(--card);
+            border: 1px solid var(--line);
+            backdrop-filter: blur(10px);
+        }
 
-    .step-pill {
-      border: 1px solid #475569;
-      background: #0f172a;
-      transition: all .2s ease;
-    }
+        .step-pill {
+            border: 1px solid #475569;
+            background: #0f172a;
+            transition: all .2s ease;
+        }
 
-    .step-pill:hover {
-      border-color: #22d3ee;
-      transform: translateY(-1px);
-    }
+        .step-pill:hover {
+            border-color: #22d3ee;
+            transform: translateY(-1px);
+        }
 
-    .step-pill.active {
-      border-color: #22d3ee;
-      background: #0e2a34;
-    }
-  </style>
+        .step-pill.active {
+            border-color: #22d3ee;
+            background: #0e2a34;
+        }
+    </style>
 </head>
+
 <body>
-  <main class="max-w-6xl mx-auto px-4 py-8 sm:py-10">
-    <section class="glass rounded-3xl p-6 sm:p-8 shadow-2xl">
-      <div class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-        <div>
-          <h1 class="text-3xl sm:text-4xl font-extrabold tracking-tight">ID Photo Cut Sheet Studio</h1>
-          <p class="text-slate-300 mt-1">Upload photo, select size, crop, set copies, then move to next photo.</p>
-        </div>
-        <div class="rounded-xl border border-cyan-400/30 bg-cyan-400/10 px-4 py-2 text-sm">
-          Print format locked: <strong>A4</strong> at <strong>300 DPI</strong>
-        </div>
-      </div>
-
-      <div class="mt-6 grid gap-5 lg:grid-cols-[1.1fr_0.9fr]">
-        <div class="glass rounded-2xl p-5">
-          <h2 class="font-bold text-xl">1. Upload Photos</h2>
-          <input id="imageInput" type="file" accept="image/*" multiple class="hidden" />
-          <div id="dropZone" class="mt-4 rounded-2xl border-2 border-dashed border-slate-500 p-8 text-center cursor-pointer hover:border-cyan-400 hover:bg-cyan-400/5 transition">
-            <p class="text-lg font-semibold">Drop images here or click to browse</p>
-            <p class="text-sm text-slate-400 mt-1">JPG, PNG, WEBP</p>
-          </div>
-          <div class="mt-5" id="photoList"></div>
-        </div>
-
-        <div class="glass rounded-2xl p-5">
-          <h2 class="font-bold text-xl">2. Layout and Generate</h2>
-          <p class="text-sm text-slate-300 mt-1">All selected variants will be arranged automatically on A4 pages.</p>
-          <div class="mt-4 grid grid-cols-2 gap-3">
-            <label class="text-sm">Spacing (inch)
-              <input id="spacingIn" type="number" min="0" step="0.01" value="0.20" class="mt-1 w-full rounded-lg border border-slate-500 bg-slate-900 px-3 py-2" />
-            </label>
-            <label class="text-sm">Stroke (px)
-              <input id="stroke" type="number" min="0" value="2" class="mt-1 w-full rounded-lg border border-slate-500 bg-slate-900 px-3 py-2" />
-            </label>
-          </div>
-
-          <div class="mt-6 flex flex-col gap-3">
-            <button id="generateBtn" class="bg-amber-500 hover:bg-amber-400 text-slate-900 font-bold px-5 py-3 rounded-xl">Generate A4 PDF</button>
-            <button id="downloadBtn" class="hidden bg-emerald-500 hover:bg-emerald-400 text-slate-900 font-bold px-5 py-3 rounded-xl">Download PDF</button>
-            <button id="printBtn" class="hidden bg-cyan-500 hover:bg-cyan-400 text-slate-900 font-bold px-5 py-3 rounded-xl">Print PDF</button>
-            <p id="loading" class="hidden text-cyan-300 text-sm">Processing photos, please wait...</p>
-          </div>
-
-          <embed id="pdfPreview" type="application/pdf" class="hidden mt-5 w-full h-[480px] rounded-xl border border-slate-500" />
-        </div>
-      </div>
-    </section>
-  </main>
-
-  <div id="wizardModal" class="hidden fixed inset-0 bg-black/75 p-4 z-50 overflow-auto">
-    <div class="max-w-4xl mx-auto glass rounded-2xl p-5 sm:p-6">
-      <div class="flex items-start justify-between">
-        <div>
-          <h3 class="text-2xl font-bold">Configure Photo</h3>
-          <p id="wizardSubtitle" class="text-slate-300 text-sm mt-1"></p>
-        </div>
-        <button id="closeWizard" class="text-slate-300 hover:text-white text-2xl leading-none">&times;</button>
-      </div>
-
-      <div class="mt-4 grid gap-5 lg:grid-cols-[1fr_1fr]">
-        <div>
-          <img id="wizardImage" src="" alt="Crop source" class="rounded-xl max-h-[420px] w-full object-contain bg-slate-900 border border-slate-600" />
-        </div>
-
-        <div>
-          <div id="stepSizeSection">
-            <p class="font-semibold mb-2">Step 1: Select size</p>
-            <div id="sizeGrid" class="grid grid-cols-1 gap-2">
-              <button data-size="passport" class="step-pill text-left rounded-xl p-3">
-                <strong>Passport Size</strong><br><span class="text-xs text-slate-300">1.6 in x 2 in at 300 DPI</span>
-              </button>
-              <button data-size="visa" class="step-pill text-left rounded-xl p-3">
-                <strong>Visa Print Size</strong><br><span class="text-xs text-slate-300">2 in x 2 in at 300 DPI</span>
-              </button>
-              <button data-size="stamp" class="step-pill text-left rounded-xl p-3">
-                <strong>Stamp Size</strong><br><span class="text-xs text-slate-300">20 mm x 25 mm at 300 DPI</span>
-              </button>
-              <button data-size="custom" class="step-pill text-left rounded-xl p-3">
-                <strong>Other Size</strong><br><span class="text-xs text-slate-300">Custom width and height</span>
-              </button>
+    <main class="max-w-6xl mx-auto px-4 py-8 sm:py-10">
+        <section class="glass rounded-3xl p-6 sm:p-8 shadow-2xl">
+            <div class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+                <div>
+                    <h1 class="text-3xl sm:text-4xl font-extrabold tracking-tight">Photo Cut Sheet Studio</h1>
+                    <p class="text-slate-300 mt-1">Upload photo, select size, crop, set copies, then move to next photo.
+                    </p>
+                </div>
+                <div class="rounded-xl border border-cyan-400/30 bg-cyan-400/10 px-4 py-2 text-sm">
+                    Print format locked: <strong>A4</strong> at <strong>300 DPI</strong>
+                </div>
             </div>
 
-            <div id="customSizeBox" class="hidden mt-3 rounded-xl border border-slate-600 bg-slate-900 p-3">
-              <div class="grid grid-cols-2 gap-2">
-                <label class="text-sm">Width
-                  <input id="customWidth" type="number" min="1" value="35" class="mt-1 w-full rounded-lg border border-slate-500 bg-slate-800 px-2 py-1.5" />
-                </label>
-                <label class="text-sm">Height
-                  <input id="customHeight" type="number" min="1" value="45" class="mt-1 w-full rounded-lg border border-slate-500 bg-slate-800 px-2 py-1.5" />
-                </label>
-              </div>
-              <label class="text-sm mt-2 block">Unit
-                <select id="customUnit" class="mt-1 w-full rounded-lg border border-slate-500 bg-slate-800 px-2 py-1.5">
-                  <option value="mm">Millimeter (mm)</option>
-                  <option value="in">Inch (in)</option>
-                </select>
-              </label>
+            <div class="mt-6 grid gap-5 lg:grid-cols-[1.1fr_0.9fr]">
+                <div class="glass rounded-2xl p-5">
+                    <h2 class="font-bold text-xl">1. Upload Photos</h2>
+                    <input id="imageInput" type="file" accept="image/*" multiple class="hidden" />
+                    <div id="dropZone"
+                        class="mt-4 rounded-2xl border-2 border-dashed border-slate-500 p-8 text-center cursor-pointer hover:border-cyan-400 hover:bg-cyan-400/5 transition">
+                        <p class="text-lg font-semibold">Drop images here or click to browse</p>
+                        <p class="text-sm text-slate-400 mt-1">JPG, PNG, WEBP</p>
+                    </div>
+                    <div class="mt-5" id="photoList"></div>
+                </div>
+
+                <div class="glass rounded-2xl p-5">
+                    <h2 class="font-bold text-xl">2. Layout and Generate</h2>
+                    <p class="text-sm text-slate-300 mt-1">All selected variants will be arranged automatically on A4
+                        pages.</p>
+                    <div class="mt-4 grid grid-cols-2 gap-3">
+                        <label class="text-sm">Spacing (inch)
+                            <input id="spacingIn" type="number" min="0" step="0.01" value="0.20"
+                                class="mt-1 w-full rounded-lg border border-slate-500 bg-slate-900 px-3 py-2" />
+                        </label>
+                        <label class="text-sm">Stroke (px)
+                            <input id="stroke" type="number" min="0" value="2"
+                                class="mt-1 w-full rounded-lg border border-slate-500 bg-slate-900 px-3 py-2" />
+                        </label>
+                    </div>
+                    <div class="mt-3">
+                        <label class="text-sm">Skip First Slots
+                            <input id="skipSlots" type="number" min="0" value="0"
+                                class="mt-1 w-full rounded-lg border border-slate-500 bg-slate-900 px-3 py-2" />
+                        </label>
+                        <p class="text-xs text-slate-400 mt-1">Use 1 to leave the first position empty and print from
+                            the second slot.</p>
+                    </div>
+
+                    <div class="mt-6 flex flex-col gap-3">
+                        <button id="generateBtn"
+                            class="bg-amber-500 hover:bg-amber-400 text-slate-900 font-bold px-5 py-3 rounded-xl">Generate
+                            A4 PDF</button>
+                        <button id="downloadBtn"
+                            class="hidden bg-emerald-500 hover:bg-emerald-400 text-slate-900 font-bold px-5 py-3 rounded-xl">Download
+                            PDF</button>
+                        <button id="printBtn"
+                            class="hidden bg-cyan-500 hover:bg-cyan-400 text-slate-900 font-bold px-5 py-3 rounded-xl">Print
+                            PDF</button>
+                        <p id="loading" class="hidden text-cyan-300 text-sm">Processing photos, please wait...</p>
+                    </div>
+
+                    <embed id="pdfPreview" type="application/pdf"
+                        class="hidden mt-5 w-full h-[480px] rounded-xl border border-slate-500" />
+                </div>
             </div>
-          </div>
+        </section>
+    </main>
 
-          <div id="stepCropSection" class="hidden mt-4">
-            <p class="font-semibold mb-2">Step 2: Crop photo</p>
-            <p class="text-sm text-slate-300">Adjust crop area and click apply.</p>
-          </div>
+    <div id="wizardModal" class="hidden fixed inset-0 bg-black/75 p-4 z-50 overflow-auto">
+        <div class="max-w-4xl mx-auto glass rounded-2xl p-5 sm:p-6">
+            <div class="flex items-start justify-between">
+                <div>
+                    <h3 class="text-2xl font-bold">Configure Photo</h3>
+                    <p id="wizardSubtitle" class="text-slate-300 text-sm mt-1"></p>
+                </div>
+                <button id="closeWizard" class="text-slate-300 hover:text-white text-2xl leading-none">&times;</button>
+            </div>
 
-          <div id="stepCopiesSection" class="hidden mt-4">
-            <p class="font-semibold mb-2">Step 3: Number of copies</p>
-            <label class="text-sm">Copies (default 4)
-              <input id="copiesInput" type="number" min="1" max="54" value="4" class="mt-1 w-full rounded-lg border border-slate-500 bg-slate-900 px-3 py-2" />
-            </label>
-          </div>
+            <div class="mt-4 grid gap-5 lg:grid-cols-[1fr_1fr]">
+                <div>
+                    <img id="wizardImage" src="" alt="Crop source"
+                        class="rounded-xl max-h-[420px] w-full object-contain bg-slate-900 border border-slate-600" />
+                </div>
 
-          <div class="mt-4 flex gap-2">
-            <button id="wizardConfirmBtn" class="bg-cyan-600 hover:bg-cyan-500 rounded-lg px-4 py-2 font-semibold">Confirm Size</button>
-          </div>
+                <div>
+                    <div id="stepSizeSection">
+                        <p class="font-semibold mb-2">Step 1: Select size</p>
+                        <div id="sizeGrid" class="grid grid-cols-1 gap-2">
+                            <button data-size="passport" class="step-pill text-left rounded-xl p-3">
+                                <strong>Passport Size</strong><br><span class="text-xs text-slate-300">1.6 in x 2 in at
+                                    300 DPI</span>
+                            </button>
+                            <button data-size="visa" class="step-pill text-left rounded-xl p-3">
+                                <strong>Visa Print Size</strong><br><span class="text-xs text-slate-300">2 in x 2 in at
+                                    300 DPI</span>
+                            </button>
+                            <button data-size="stamp" class="step-pill text-left rounded-xl p-3">
+                                <strong>Stamp Size</strong><br><span class="text-xs text-slate-300">20 mm x 25 mm at 300
+                                    DPI</span>
+                            </button>
+                            <button data-size="custom" class="step-pill text-left rounded-xl p-3">
+                                <strong>Other Size</strong><br><span class="text-xs text-slate-300">Custom width and
+                                    height</span>
+                            </button>
+                        </div>
 
-          <p id="wizardStatus" class="text-sm text-slate-300 mt-3"></p>
+                        <div id="customSizeBox" class="hidden mt-3 rounded-xl border border-slate-600 bg-slate-900 p-3">
+                            <div class="grid grid-cols-2 gap-2">
+                                <label class="text-sm">Width
+                                    <input id="customWidth" type="number" min="1" value="35"
+                                        class="mt-1 w-full rounded-lg border border-slate-500 bg-slate-800 px-2 py-1.5" />
+                                </label>
+                                <label class="text-sm">Height
+                                    <input id="customHeight" type="number" min="1" value="45"
+                                        class="mt-1 w-full rounded-lg border border-slate-500 bg-slate-800 px-2 py-1.5" />
+                                </label>
+                            </div>
+                            <label class="text-sm mt-2 block">Unit
+                                <select id="customUnit"
+                                    class="mt-1 w-full rounded-lg border border-slate-500 bg-slate-800 px-2 py-1.5">
+                                    <option value="mm">Millimeter (mm)</option>
+                                    <option value="in">Inch (in)</option>
+                                </select>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div id="stepCropSection" class="hidden mt-4">
+                        <p class="font-semibold mb-2">Step 2: Crop photo</p>
+                        <p class="text-sm text-slate-300">Adjust crop area and click apply.</p>
+                    </div>
+
+                    <div id="stepCopiesSection" class="hidden mt-4">
+                        <p class="font-semibold mb-2">Step 3: Number of copies</p>
+                        <label class="text-sm">Copies (default 4)
+                            <input id="copiesInput" type="number" min="1" max="54" value="4"
+                                class="mt-1 w-full rounded-lg border border-slate-500 bg-slate-900 px-3 py-2" />
+                        </label>
+                    </div>
+
+                    <div class="mt-4 flex gap-2">
+                        <button id="wizardConfirmBtn"
+                            class="bg-cyan-600 hover:bg-cyan-500 rounded-lg px-4 py-2 font-semibold">Confirm
+                            Size</button>
+                    </div>
+
+                    <p id="wizardStatus" class="text-sm text-slate-300 mt-3"></p>
+                </div>
+            </div>
         </div>
-      </div>
     </div>
-  </div>
 
-  <div id="toast" class="hidden fixed right-4 bottom-4 bg-slate-900 border border-slate-500 text-white px-4 py-3 rounded-lg z-[60]"></div>
+    <div id="toast"
+        class="hidden fixed right-4 bottom-4 bg-slate-900 border border-slate-500 text-white px-4 py-3 rounded-lg z-[60]">
+    </div>
 
-  <script>
-    const DPI = 300;
-    const presets = {
-      passport: { label: "Passport (1.6 x 2 in)", widthIn: 1.6, heightIn: 2 },
-      visa: { label: "Visa (2 x 2 in)", widthIn: 2, heightIn: 2 },
-      stamp: { label: "Stamp (20 x 25 mm)", widthMm: 20, heightMm: 25 },
-    };
+    <script>
+        const DPI = 300;
+        const presets = {
+            passport: { label: "Passport (1.6 x 2 in)", widthIn: 1.6, heightIn: 2 },
+            visa: { label: "Visa (2 x 2 in)", widthIn: 2, heightIn: 2 },
+            stamp: { label: "Stamp (20 x 25 mm)", widthMm: 20, heightMm: 25 },
+        };
 
-    const originals = [];
-    let nextId = 0;
-    let activeCropper = null;
-    let currentPhotoId = null;
-    let selectedSizeKey = "passport";
-    let wizardQueue = [];
-    let wizardIndex = 0;
-    let wizardStep = "size";
-    let pendingVariant = null;
-    let pdfUrl = null;
+        const originals = [];
+        let nextId = 0;
+        let activeCropper = null;
+        let currentPhotoId = null;
+        let selectedSizeKey = "passport";
+        let wizardQueue = [];
+        let wizardIndex = 0;
+        let wizardStep = "size";
+        let pendingVariant = null;
+        let pdfUrl = null;
 
-    const dropZone = document.getElementById("dropZone");
-    const imageInput = document.getElementById("imageInput");
-    const photoList = document.getElementById("photoList");
-    const spacingInInput = document.getElementById("spacingIn");
-    const strokeInput = document.getElementById("stroke");
-    const generateBtn = document.getElementById("generateBtn");
-    const downloadBtn = document.getElementById("downloadBtn");
-    const printBtn = document.getElementById("printBtn");
-    const loading = document.getElementById("loading");
-    const pdfPreview = document.getElementById("pdfPreview");
+        const dropZone = document.getElementById("dropZone");
+        const imageInput = document.getElementById("imageInput");
+        const photoList = document.getElementById("photoList");
+        const spacingInInput = document.getElementById("spacingIn");
+        const strokeInput = document.getElementById("stroke");
+        const skipSlotsInput = document.getElementById("skipSlots");
+        const generateBtn = document.getElementById("generateBtn");
+        const downloadBtn = document.getElementById("downloadBtn");
+        const printBtn = document.getElementById("printBtn");
+        const loading = document.getElementById("loading");
+        const pdfPreview = document.getElementById("pdfPreview");
 
-    const wizardModal = document.getElementById("wizardModal");
-    const closeWizard = document.getElementById("closeWizard");
-    const wizardImage = document.getElementById("wizardImage");
-    const wizardSubtitle = document.getElementById("wizardSubtitle");
-    const wizardStatus = document.getElementById("wizardStatus");
-    const sizeGrid = document.getElementById("sizeGrid");
-    const customSizeBox = document.getElementById("customSizeBox");
-    const customWidth = document.getElementById("customWidth");
-    const customHeight = document.getElementById("customHeight");
-    const customUnit = document.getElementById("customUnit");
-    const copiesInput = document.getElementById("copiesInput");
-    const stepSizeSection = document.getElementById("stepSizeSection");
-    const stepCropSection = document.getElementById("stepCropSection");
-    const stepCopiesSection = document.getElementById("stepCopiesSection");
-    const wizardConfirmBtn = document.getElementById("wizardConfirmBtn");
-    const toast = document.getElementById("toast");
+        const wizardModal = document.getElementById("wizardModal");
+        const closeWizard = document.getElementById("closeWizard");
+        const wizardImage = document.getElementById("wizardImage");
+        const wizardSubtitle = document.getElementById("wizardSubtitle");
+        const wizardStatus = document.getElementById("wizardStatus");
+        const sizeGrid = document.getElementById("sizeGrid");
+        const customSizeBox = document.getElementById("customSizeBox");
+        const customWidth = document.getElementById("customWidth");
+        const customHeight = document.getElementById("customHeight");
+        const customUnit = document.getElementById("customUnit");
+        const copiesInput = document.getElementById("copiesInput");
+        const stepSizeSection = document.getElementById("stepSizeSection");
+        const stepCropSection = document.getElementById("stepCropSection");
+        const stepCopiesSection = document.getElementById("stepCopiesSection");
+        const wizardConfirmBtn = document.getElementById("wizardConfirmBtn");
+        const toast = document.getElementById("toast");
 
-    function showToast(message, isError = false) {
-      toast.textContent = message;
-      toast.classList.remove("hidden", "border-red-400", "border-emerald-400");
-      toast.classList.add(isError ? "border-red-400" : "border-emerald-400");
-      setTimeout(() => toast.classList.add("hidden"), 3000);
-    }
+        function showToast(message, isError = false) {
+            toast.textContent = message;
+            toast.classList.remove("hidden", "border-red-400", "border-emerald-400");
+            toast.classList.add(isError ? "border-red-400" : "border-emerald-400");
+            setTimeout(() => toast.classList.add("hidden"), 3000);
+        }
 
-    function mmToPx(mm) {
-      return Math.round((mm / 25.4) * DPI);
-    }
+        function mmToPx(mm) {
+            return Math.round((mm / 25.4) * DPI);
+        }
 
-    function inToPx(inches) {
-      return Math.round(inches * DPI);
-    }
+        function inToPx(inches) {
+            return Math.round(inches * DPI);
+        }
 
-    function getSizeConfig() {
-      if (selectedSizeKey === "custom") {
-        const w = Math.max(1, Number(customWidth.value || 1));
-        const h = Math.max(1, Number(customHeight.value || 1));
-        const unit = customUnit.value;
-        const widthPx = unit === "mm" ? mmToPx(w) : inToPx(w);
-        const heightPx = unit === "mm" ? mmToPx(h) : inToPx(h);
-        return { label: `Custom (${w} ${unit} x ${h} ${unit})`, widthPx, heightPx };
-      }
+        function getSizeConfig() {
+            if (selectedSizeKey === "custom") {
+                const w = Math.max(1, Number(customWidth.value || 1));
+                const h = Math.max(1, Number(customHeight.value || 1));
+                const unit = customUnit.value;
+                const widthPx = unit === "mm" ? mmToPx(w) : inToPx(w);
+                const heightPx = unit === "mm" ? mmToPx(h) : inToPx(h);
+                return { label: `Custom (${w} ${unit} x ${h} ${unit})`, widthPx, heightPx };
+            }
 
-      const p = presets[selectedSizeKey];
-      if (p.widthIn) {
-        return { label: p.label, widthPx: inToPx(p.widthIn), heightPx: inToPx(p.heightIn) };
-      }
-      return { label: p.label, widthPx: mmToPx(p.widthMm), heightPx: mmToPx(p.heightMm) };
-    }
+            const p = presets[selectedSizeKey];
+            if (p.widthIn) {
+                return { label: p.label, widthPx: inToPx(p.widthIn), heightPx: inToPx(p.heightIn) };
+            }
+            return { label: p.label, widthPx: mmToPx(p.widthMm), heightPx: mmToPx(p.heightMm) };
+        }
 
-    function getPhotoById(id) {
-      return originals.find((p) => p.id === id);
-    }
+        function getPhotoById(id) {
+            return originals.find((p) => p.id === id);
+        }
 
-    function setWizardStep(step) {
-      wizardStep = step;
-      stepSizeSection.classList.toggle("hidden", step !== "size");
-      stepCropSection.classList.toggle("hidden", step !== "crop");
-      stepCopiesSection.classList.toggle("hidden", step !== "copies");
+        function setWizardStep(step) {
+            wizardStep = step;
+            stepSizeSection.classList.toggle("hidden", step !== "size");
+            stepCropSection.classList.toggle("hidden", step !== "crop");
+            stepCopiesSection.classList.toggle("hidden", step !== "copies");
 
-      if (step === "size") {
-        wizardConfirmBtn.textContent = "Confirm Size";
-      } else if (step === "crop") {
-        wizardConfirmBtn.textContent = "Apply Crop";
-      } else {
-        wizardConfirmBtn.textContent = "Confirm Copies";
-      }
-    }
+            if (step === "size") {
+                wizardConfirmBtn.textContent = "Confirm Size";
+            } else if (step === "crop") {
+                wizardConfirmBtn.textContent = "Apply Crop";
+            } else {
+                wizardConfirmBtn.textContent = "Confirm Copies";
+            }
+        }
 
-    function highlightSelectedSize() {
-      sizeGrid.querySelectorAll("button").forEach((btn) => {
-        btn.classList.toggle("active", btn.dataset.size === selectedSizeKey);
-      });
-      customSizeBox.classList.toggle("hidden", selectedSizeKey !== "custom");
-    }
+        function highlightSelectedSize() {
+            sizeGrid.querySelectorAll("button").forEach((btn) => {
+                btn.classList.toggle("active", btn.dataset.size === selectedSizeKey);
+            });
+            customSizeBox.classList.toggle("hidden", selectedSizeKey !== "custom");
+        }
 
-    function renderPhotoList() {
-      photoList.innerHTML = "";
-      originals.forEach((photo) => {
-        const card = document.createElement("div");
-        card.className = "rounded-xl border border-slate-600 bg-slate-900/70 p-4 mb-3";
+        function renderPhotoList() {
+            photoList.innerHTML = "";
+            originals.forEach((photo) => {
+                const card = document.createElement("div");
+                card.className = "rounded-xl border border-slate-600 bg-slate-900/70 p-4 mb-3";
 
-        const variants = photo.variants.map((v, idx) => (
-          `<div class="text-xs bg-slate-800 border border-slate-600 rounded-lg px-2 py-1">${idx + 1}. ${v.label} - ${v.copies} copies</div>`
-        )).join("");
+                const variants = photo.variants.map((v, idx) => (
+                    `<div class="text-xs bg-slate-800 border border-slate-600 rounded-lg px-2 py-1">${idx + 1}. ${v.label} - ${v.copies} copies</div>`
+                )).join("");
 
-        card.innerHTML = `
+                card.innerHTML = `
           <div class="flex gap-4 items-start">
             <img src="${photo.previewUrl}" class="w-20 h-24 object-cover rounded-lg border border-slate-500" />
             <div class="flex-1 min-w-0">
@@ -304,306 +341,308 @@
             </div>
           </div>
         `;
-        photoList.appendChild(card);
-      });
+                photoList.appendChild(card);
+            });
 
-      document.querySelectorAll(".config-btn").forEach((btn) => {
-        btn.addEventListener("click", () => {
-          const id = Number(btn.dataset.id);
-          openWizardForPhoto(id, [id]);
-        });
-      });
+            document.querySelectorAll(".config-btn").forEach((btn) => {
+                btn.addEventListener("click", () => {
+                    const id = Number(btn.dataset.id);
+                    openWizardForPhoto(id, [id]);
+                });
+            });
 
-      document.querySelectorAll(".remove-btn").forEach((btn) => {
-        btn.addEventListener("click", () => {
-          const id = Number(btn.dataset.id);
-          const idx = originals.findIndex((p) => p.id === id);
-          if (idx >= 0) originals.splice(idx, 1);
-          renderPhotoList();
-        });
-      });
-    }
-
-    function addFiles(fileList) {
-      const validTypes = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
-      const newIds = [];
-
-      Array.from(fileList).forEach((file) => {
-        if (!validTypes.includes(file.type)) return;
-        const id = nextId++;
-        originals.push({
-          id,
-          file,
-          name: file.name,
-          previewUrl: URL.createObjectURL(file),
-          variants: [],
-        });
-        newIds.push(id);
-      });
-
-      if (newIds.length === 0) {
-        showToast("Please upload valid image files.", true);
-        return;
-      }
-
-      renderPhotoList();
-      startWizardQueue(newIds);
-    }
-
-    function startWizardQueue(ids) {
-      wizardQueue = ids;
-      wizardIndex = 0;
-      if (wizardQueue.length > 0) {
-        openWizardForPhoto(wizardQueue[wizardIndex], wizardQueue);
-      }
-    }
-
-    function openWizardForPhoto(photoId, queue = []) {
-      const photo = getPhotoById(photoId);
-      if (!photo) return;
-
-      if (queue.length > 0) {
-        wizardQueue = queue;
-      }
-
-      currentPhotoId = photoId;
-      pendingVariant = null;
-      wizardModal.classList.remove("hidden");
-      wizardImage.src = photo.previewUrl;
-      wizardSubtitle.textContent = `Photo: ${photo.name}`;
-      copiesInput.value = "4";
-      wizardStatus.textContent = "Step 1: Select a size and click confirm.";
-      selectedSizeKey = "passport";
-      highlightSelectedSize();
-      setWizardStep("size");
-
-      if (activeCropper) {
-        activeCropper.destroy();
-        activeCropper = null;
-      }
-    }
-
-    function applySizeAndStartCrop() {
-      const cfg = getSizeConfig();
-      const photo = getPhotoById(currentPhotoId);
-      if (!photo) return;
-
-      pendingVariant = { ...cfg };
-      wizardImage.src = photo.previewUrl;
-      wizardStatus.textContent = `Step 2: Crop for ${cfg.label}.`;
-
-      setTimeout(() => {
-        if (activeCropper) activeCropper.destroy();
-        activeCropper = new Cropper(wizardImage, {
-          aspectRatio: cfg.widthPx / cfg.heightPx,
-          viewMode: 1,
-          dragMode: "move",
-          autoCropArea: 1,
-        });
-        setWizardStep("crop");
-      }, 10);
-    }
-
-    function applyCrop() {
-      if (!activeCropper || !pendingVariant) {
-        showToast("Please confirm size first.", true);
-        return;
-      }
-
-      const canvas = activeCropper.getCroppedCanvas({
-        width: pendingVariant.widthPx,
-        height: pendingVariant.heightPx,
-      });
-
-      canvas.toBlob((blob) => {
-        if (!blob) {
-          showToast("Failed to crop image.", true);
-          return;
+            document.querySelectorAll(".remove-btn").forEach((btn) => {
+                btn.addEventListener("click", () => {
+                    const id = Number(btn.dataset.id);
+                    const idx = originals.findIndex((p) => p.id === id);
+                    if (idx >= 0) originals.splice(idx, 1);
+                    renderPhotoList();
+                });
+            });
         }
 
-        pendingVariant.blob = blob;
-        activeCropper.destroy();
-        activeCropper = null;
-        wizardStatus.textContent = "Step 3: Enter copies and confirm.";
-        setWizardStep("copies");
-      }, "image/png");
-    }
+        function addFiles(fileList) {
+            const validTypes = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
+            const newIds = [];
 
-    function saveVariantAndGoNext() {
-      const photo = getPhotoById(currentPhotoId);
-      if (!photo || !pendingVariant || !pendingVariant.blob) {
-        showToast("Please complete all steps.", true);
-        return;
-      }
+            Array.from(fileList).forEach((file) => {
+                if (!validTypes.includes(file.type)) return;
+                const id = nextId++;
+                originals.push({
+                    id,
+                    file,
+                    name: file.name,
+                    previewUrl: URL.createObjectURL(file),
+                    variants: [],
+                });
+                newIds.push(id);
+            });
 
-      const copies = Math.max(1, Number(copiesInput.value || 4));
-      const file = new File([pendingVariant.blob], `variant-${photo.id}-${Date.now()}.png`, { type: "image/png" });
+            if (newIds.length === 0) {
+                showToast("Please upload valid image files.", true);
+                return;
+            }
 
-      photo.variants.push({
-        label: pendingVariant.label,
-        widthPx: pendingVariant.widthPx,
-        heightPx: pendingVariant.heightPx,
-        copies,
-        file,
-        previewUrl: URL.createObjectURL(pendingVariant.blob),
-      });
-
-      renderPhotoList();
-      pendingVariant = null;
-      moveToNextInQueue();
-    }
-
-    function moveToNextInQueue() {
-      if (wizardQueue.length > 0) {
-        wizardIndex += 1;
-        if (wizardIndex < wizardQueue.length) {
-          openWizardForPhoto(wizardQueue[wizardIndex], wizardQueue);
-          return;
+            renderPhotoList();
+            startWizardQueue(newIds);
         }
-      }
 
-      wizardModal.classList.add("hidden");
-      currentPhotoId = null;
-      if (activeCropper) {
-        activeCropper.destroy();
-        activeCropper = null;
-      }
-      showToast("Setup complete. You can now generate A4 PDF.");
-    }
+        function startWizardQueue(ids) {
+            wizardQueue = ids;
+            wizardIndex = 0;
+            if (wizardQueue.length > 0) {
+                openWizardForPhoto(wizardQueue[wizardIndex], wizardQueue);
+            }
+        }
 
-    function collectVariants() {
-      const all = [];
-      originals.forEach((photo) => {
-        photo.variants.forEach((variant) => all.push(variant));
-      });
-      return all;
-    }
+        function openWizardForPhoto(photoId, queue = []) {
+            const photo = getPhotoById(photoId);
+            if (!photo) return;
 
-    function generatePdf() {
-      const variants = collectVariants();
-      if (variants.length === 0) {
-        showToast("Add at least one configured photo before generating.", true);
-        return;
-      }
+            if (queue.length > 0) {
+                wizardQueue = queue;
+            }
 
-      const formData = new FormData();
-      formData.append("item_count", String(variants.length));
-      formData.append("spacing_in", String(Math.max(0, Number(spacingInInput.value || 0.2))));
-      formData.append("stroke", String(Math.max(0, Number(strokeInput.value || 2))));
+            currentPhotoId = photoId;
+            pendingVariant = null;
+            wizardModal.classList.remove("hidden");
+            wizardImage.src = photo.previewUrl;
+            wizardSubtitle.textContent = `Photo: ${photo.name}`;
+            copiesInput.value = "4";
+            wizardStatus.textContent = "Step 1: Select a size and click confirm.";
+            selectedSizeKey = "passport";
+            highlightSelectedSize();
+            setWizardStep("size");
 
-      variants.forEach((v, i) => {
-        formData.append(`image_${i}`, v.file);
-        formData.append(`copies_${i}`, String(v.copies));
-        formData.append(`width_px_${i}`, String(v.widthPx));
-        formData.append(`height_px_${i}`, String(v.heightPx));
-      });
+            if (activeCropper) {
+                activeCropper.destroy();
+                activeCropper = null;
+            }
+        }
 
-      loading.classList.remove("hidden");
-      generateBtn.disabled = true;
-      pdfPreview.classList.add("hidden");
-      downloadBtn.classList.add("hidden");
-      printBtn.classList.add("hidden");
+        function applySizeAndStartCrop() {
+            const cfg = getSizeConfig();
+            const photo = getPhotoById(currentPhotoId);
+            if (!photo) return;
 
-      fetch("/process", { method: "POST", body: formData })
-        .then(async (response) => {
-          if (!response.ok) {
-            if (response.status === 429) throw new Error("remove.bg quota exceeded.");
-            if (response.status === 410) throw new Error("Face detection failed in one of the images.");
-            if (response.status === 403) throw new Error("remove.bg authentication failed. Check API key.");
-            const msg = await response.text();
-            throw new Error(msg || "Processing failed.");
-          }
-          return response.blob();
-        })
-        .then((blob) => {
-          if (pdfUrl) URL.revokeObjectURL(pdfUrl);
-          pdfUrl = URL.createObjectURL(blob);
-          pdfPreview.src = pdfUrl;
-          pdfPreview.classList.remove("hidden");
-          downloadBtn.classList.remove("hidden");
-          printBtn.classList.remove("hidden");
-          downloadBtn.onclick = () => {
-            const a = document.createElement("a");
-            a.href = pdfUrl;
-            a.download = "id-photo-cut-sheet.pdf";
-            a.click();
-          };
-          printBtn.onclick = () => {
-            const iframe = document.createElement("iframe");
-            iframe.style.position = "fixed";
-            iframe.style.right = "0";
-            iframe.style.bottom = "0";
-            iframe.style.width = "0";
-            iframe.style.height = "0";
-            iframe.style.border = "0";
-            iframe.src = pdfUrl;
-            document.body.appendChild(iframe);
-            iframe.onload = () => {
-              iframe.contentWindow.focus();
-              iframe.contentWindow.print();
-            };
-          };
-          showToast("A4 PDF generated successfully.");
-        })
-        .catch((err) => {
-          console.error(err);
-          showToast(err.message || "Failed to generate PDF.", true);
-        })
-        .finally(() => {
-          loading.classList.add("hidden");
-          generateBtn.disabled = false;
+            pendingVariant = { ...cfg };
+            wizardImage.src = photo.previewUrl;
+            wizardStatus.textContent = `Step 2: Crop for ${cfg.label}.`;
+
+            setTimeout(() => {
+                if (activeCropper) activeCropper.destroy();
+                activeCropper = new Cropper(wizardImage, {
+                    aspectRatio: cfg.widthPx / cfg.heightPx,
+                    viewMode: 1,
+                    dragMode: "move",
+                    autoCropArea: 1,
+                });
+                setWizardStep("crop");
+            }, 10);
+        }
+
+        function applyCrop() {
+            if (!activeCropper || !pendingVariant) {
+                showToast("Please confirm size first.", true);
+                return;
+            }
+
+            const canvas = activeCropper.getCroppedCanvas({
+                width: pendingVariant.widthPx,
+                height: pendingVariant.heightPx,
+            });
+
+            canvas.toBlob((blob) => {
+                if (!blob) {
+                    showToast("Failed to crop image.", true);
+                    return;
+                }
+
+                pendingVariant.blob = blob;
+                activeCropper.destroy();
+                activeCropper = null;
+                wizardStatus.textContent = "Step 3: Enter copies and confirm.";
+                setWizardStep("copies");
+            }, "image/png");
+        }
+
+        function saveVariantAndGoNext() {
+            const photo = getPhotoById(currentPhotoId);
+            if (!photo || !pendingVariant || !pendingVariant.blob) {
+                showToast("Please complete all steps.", true);
+                return;
+            }
+
+            const copies = Math.max(1, Number(copiesInput.value || 4));
+            const file = new File([pendingVariant.blob], `variant-${photo.id}-${Date.now()}.png`, { type: "image/png" });
+
+            photo.variants.push({
+                label: pendingVariant.label,
+                widthPx: pendingVariant.widthPx,
+                heightPx: pendingVariant.heightPx,
+                copies,
+                file,
+                previewUrl: URL.createObjectURL(pendingVariant.blob),
+            });
+
+            renderPhotoList();
+            pendingVariant = null;
+            moveToNextInQueue();
+        }
+
+        function moveToNextInQueue() {
+            if (wizardQueue.length > 0) {
+                wizardIndex += 1;
+                if (wizardIndex < wizardQueue.length) {
+                    openWizardForPhoto(wizardQueue[wizardIndex], wizardQueue);
+                    return;
+                }
+            }
+
+            wizardModal.classList.add("hidden");
+            currentPhotoId = null;
+            if (activeCropper) {
+                activeCropper.destroy();
+                activeCropper = null;
+            }
+            showToast("Setup complete. You can now generate A4 PDF.");
+        }
+
+        function collectVariants() {
+            const all = [];
+            originals.forEach((photo) => {
+                photo.variants.forEach((variant) => all.push(variant));
+            });
+            return all;
+        }
+
+        function generatePdf() {
+            const variants = collectVariants();
+            if (variants.length === 0) {
+                showToast("Add at least one configured photo before generating.", true);
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append("item_count", String(variants.length));
+            formData.append("spacing_in", String(Math.max(0, Number(spacingInInput.value || 0.2))));
+            formData.append("stroke", String(Math.max(0, Number(strokeInput.value || 2))));
+            formData.append("skip_slots", String(Math.max(0, Number(skipSlotsInput.value || 0))));
+
+            variants.forEach((v, i) => {
+                formData.append(`image_${i}`, v.file);
+                formData.append(`copies_${i}`, String(v.copies));
+                formData.append(`width_px_${i}`, String(v.widthPx));
+                formData.append(`height_px_${i}`, String(v.heightPx));
+            });
+
+            loading.classList.remove("hidden");
+            generateBtn.disabled = true;
+            pdfPreview.classList.add("hidden");
+            downloadBtn.classList.add("hidden");
+            printBtn.classList.add("hidden");
+
+            fetch("/process", { method: "POST", body: formData })
+                .then(async (response) => {
+                    if (!response.ok) {
+                        if (response.status === 429) throw new Error("remove.bg quota exceeded.");
+                        if (response.status === 410) throw new Error("Face detection failed in one of the images.");
+                        if (response.status === 403) throw new Error("remove.bg authentication failed. Check API key.");
+                        const msg = await response.text();
+                        throw new Error(msg || "Processing failed.");
+                    }
+                    return response.blob();
+                })
+                .then((blob) => {
+                    if (pdfUrl) URL.revokeObjectURL(pdfUrl);
+                    pdfUrl = URL.createObjectURL(blob);
+                    pdfPreview.src = pdfUrl;
+                    pdfPreview.classList.remove("hidden");
+                    downloadBtn.classList.remove("hidden");
+                    printBtn.classList.remove("hidden");
+                    downloadBtn.onclick = () => {
+                        const a = document.createElement("a");
+                        a.href = pdfUrl;
+                        a.download = "id-photo-cut-sheet.pdf";
+                        a.click();
+                    };
+                    printBtn.onclick = () => {
+                        const iframe = document.createElement("iframe");
+                        iframe.style.position = "fixed";
+                        iframe.style.right = "0";
+                        iframe.style.bottom = "0";
+                        iframe.style.width = "0";
+                        iframe.style.height = "0";
+                        iframe.style.border = "0";
+                        iframe.src = pdfUrl;
+                        document.body.appendChild(iframe);
+                        iframe.onload = () => {
+                            iframe.contentWindow.focus();
+                            iframe.contentWindow.print();
+                        };
+                    };
+                    showToast("A4 PDF generated successfully.");
+                })
+                .catch((err) => {
+                    console.error(err);
+                    showToast(err.message || "Failed to generate PDF.", true);
+                })
+                .finally(() => {
+                    loading.classList.add("hidden");
+                    generateBtn.disabled = false;
+                });
+        }
+
+        dropZone.addEventListener("click", () => imageInput.click());
+
+        dropZone.addEventListener("dragover", (e) => {
+            e.preventDefault();
+            dropZone.classList.add("border-cyan-400", "bg-cyan-400/5");
         });
-    }
 
-    dropZone.addEventListener("click", () => imageInput.click());
+        dropZone.addEventListener("dragleave", () => {
+            dropZone.classList.remove("border-cyan-400", "bg-cyan-400/5");
+        });
 
-    dropZone.addEventListener("dragover", (e) => {
-      e.preventDefault();
-      dropZone.classList.add("border-cyan-400", "bg-cyan-400/5");
-    });
+        dropZone.addEventListener("drop", (e) => {
+            e.preventDefault();
+            dropZone.classList.remove("border-cyan-400", "bg-cyan-400/5");
+            addFiles(e.dataTransfer.files);
+        });
 
-    dropZone.addEventListener("dragleave", () => {
-      dropZone.classList.remove("border-cyan-400", "bg-cyan-400/5");
-    });
+        imageInput.addEventListener("change", () => {
+            addFiles(imageInput.files);
+            imageInput.value = "";
+        });
 
-    dropZone.addEventListener("drop", (e) => {
-      e.preventDefault();
-      dropZone.classList.remove("border-cyan-400", "bg-cyan-400/5");
-      addFiles(e.dataTransfer.files);
-    });
+        sizeGrid.querySelectorAll("button").forEach((btn) => {
+            btn.addEventListener("click", () => {
+                selectedSizeKey = btn.dataset.size;
+                highlightSelectedSize();
+            });
+        });
 
-    imageInput.addEventListener("change", () => {
-      addFiles(imageInput.files);
-      imageInput.value = "";
-    });
+        wizardConfirmBtn.addEventListener("click", () => {
+            if (wizardStep === "size") {
+                applySizeAndStartCrop();
+            } else if (wizardStep === "crop") {
+                applyCrop();
+            } else {
+                saveVariantAndGoNext();
+            }
+        });
 
-    sizeGrid.querySelectorAll("button").forEach((btn) => {
-      btn.addEventListener("click", () => {
-        selectedSizeKey = btn.dataset.size;
-        highlightSelectedSize();
-      });
-    });
+        closeWizard.addEventListener("click", () => {
+            wizardModal.classList.add("hidden");
+            pendingVariant = null;
+            if (activeCropper) {
+                activeCropper.destroy();
+                activeCropper = null;
+            }
+        });
 
-    wizardConfirmBtn.addEventListener("click", () => {
-      if (wizardStep === "size") {
-        applySizeAndStartCrop();
-      } else if (wizardStep === "crop") {
-        applyCrop();
-      } else {
-        saveVariantAndGoNext();
-      }
-    });
-
-    closeWizard.addEventListener("click", () => {
-      wizardModal.classList.add("hidden");
-      pendingVariant = null;
-      if (activeCropper) {
-        activeCropper.destroy();
-        activeCropper = null;
-      }
-    });
-
-    generateBtn.addEventListener("click", generatePdf);
-  </script>
+        generateBtn.addEventListener("click", generatePdf);
+    </script>
 </body>
+
 </html>
